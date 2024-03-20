@@ -1,0 +1,9 @@
+Each program has a boilerplate, which I've formatted the same for convienience.
+This boilerplate uses the random library to automatically generate a list of random integers
+between a given range. This list is then sorted using the algorithm.
+
+For testing you may want to un-comment the code within these boilerplates in order to print the
+before and after lists. 
+
+To set the size of the test list, change the value of 'n' in each boilerplate to hte desired length,
+a smaller size is recommended for simple testing.
