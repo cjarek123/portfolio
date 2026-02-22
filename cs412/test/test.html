@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Testing</title>
+    <style>
+      body {
+        background: #111;
+        color: #ccc;
+        font-family: monospace;
+      }
+
+      textarea {
+        background: #222;
+        color: #0f0;
+        font: 14px monospace;
+        width: 400px;
+        height: 250px;
+      }
+
+      canvas {
+        border: 1px solid #444;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gl-canvas" width="640" height="480"></canvas>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
+      integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
+      crossorigin="anonymous"
+      defer>
+    </script>
+    <script src="primitives.js"></script>
+    <script src="buffers.js"></script>
+    <script src="scene.js"></script>
+    <script>
+      function loadShader(gl, type, source){
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+
+        if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)){
+          throw new Error(gl.getShaderInfoLog(shader));
+        }
+        return shader;
+      }
+
+      function initShaderProgram(gl, vsSource, fsSource) {
+        const vs = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fs = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const program = gl.createProgram();
+
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)){
+          throw new Error(gl.getProgramInfoLog(program));
+        }
+        return program;
+      }
+
+      function main(){
+        const canvas = document.getElementById("gl-canvas");
+        const gl = canvas.getContext("webgl2");
+        if(!gl) alert("WebGL2 not supported");
+        
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Vertex shader program
+        const vsSource = `
+          attribute vec4 aVertexPosition;
+          uniform mat4 uModelViewMatrix;
+          uniform mat4 uProjectionMatrix;
+          void main() {
+            gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+          }
+        `;
+
+        // Fragment shader program
+        const fsSource = `
+          void main() {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+          }
+        `;
+
+        const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+        const programInfo = {
+          program: shaderProgram,
+          attribLocations:{
+            vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+          },
+          uniformLocations:{
+            projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
+            modelviewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+          },
+        };
+
+        const buffers = initBuffers(gl);
+        drawScene(gl, programInfo, buffers);
+      }
+
+      main();
+
+    </script>
+  </body>
